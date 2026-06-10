@@ -128,6 +128,14 @@ LockDeviceDbusInterface::LockDeviceDbusInterface(const QString &id, QObject *par
     Q_ASSERT(isValid());
 }
 
+ShutdownTimerDbusInterface::ShutdownTimerDbusInterface(const QString &deviceId, QObject *parent)
+    : OrgKdeKdeconnectDeviceShutdowntimerInterface(DaemonDbusInterface::activatedService(),
+                                                   QLatin1String("/modules/kdeconnect/devices/%1/shutdowntimer").arg(deviceId),
+                                                   QDBusConnection::sessionBus(),
+                                                   parent)
+{
+}
+
 FindMyPhoneDeviceDbusInterface::FindMyPhoneDeviceDbusInterface(const QString &deviceId, QObject *parent)
     : OrgKdeKdeconnectDeviceFindmyphoneInterface(DaemonDbusInterface::activatedService(),
                                                  QLatin1String("/modules/kdeconnect/devices/%1/findmyphone").arg(deviceId),

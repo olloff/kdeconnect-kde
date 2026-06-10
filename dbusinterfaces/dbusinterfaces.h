@@ -19,6 +19,7 @@
 #include "generated/devicenotificationsinterface.h"
 #include "generated/devicesftpinterface.h"
 #include "generated/lockdeviceinterface.h"
+#include "generated/shutdowntimerinterface.h"
 #include "generated/mprisremoteinterface.h"
 #include "generated/notificationinterface.h"
 #include "generated/remotecommandsinterface.h"
@@ -244,6 +245,13 @@ public:
     explicit ClipboardDbusInterface(const QString &deviceId, QObject *parent = nullptr);
 Q_SIGNALS:
     void autoShareDisabledChangedProxy(bool b);
+};
+
+class KDECONNECTDBUSINTERFACES_EXPORT ShutdownTimerDbusInterface : public OrgKdeKdeconnectDeviceShutdowntimerInterface
+{
+    Q_OBJECT
+public:
+    explicit ShutdownTimerDbusInterface(const QString &deviceId, QObject *parent = nullptr);
 };
 
 #endif

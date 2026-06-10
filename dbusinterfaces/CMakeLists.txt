@@ -42,6 +42,7 @@ geninterface(${PROJECT_SOURCE_DIR}/plugins/notifications/notification.h generate
 geninterface(${PROJECT_SOURCE_DIR}/plugins/mprisremote/mprisremoteplugin.h generated/mprisremoteinterface)
 geninterface(${PROJECT_SOURCE_DIR}/plugins/remotecontrol/remotecontrolplugin.h generated/remotecontrolinterface)
 geninterface(${PROJECT_SOURCE_DIR}/plugins/lockdevice/lockdeviceplugin.h generated/lockdeviceinterface)
+geninterface(${PROJECT_SOURCE_DIR}/plugins/shutdowntimer/shutdowntimerplugin.h generated/shutdowntimerinterface)
 geninterface(${PROJECT_SOURCE_DIR}/plugins/remotecommands/remotecommandsplugin.h generated/remotecommandsinterface)
 geninterface(${PROJECT_SOURCE_DIR}/plugins/remotekeyboard/remotekeyboardplugin.h generated/remotekeyboardinterface)
 geninterface(${PROJECT_SOURCE_DIR}/plugins/sms/smsplugin.h generated/smsinterface)

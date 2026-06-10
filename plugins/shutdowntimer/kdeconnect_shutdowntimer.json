@@ -1,0 +1,24 @@
+{
+    "$schema": "../kdeconnect.schema.json",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "olloff@gmail.com",
+                "Name": "olloff"
+            }
+        ],
+        "Description": "Schedule, view and cancel shutdown timers on this device from the paired device",
+        "EnabledByDefault": true,
+        "Icon": "system-shutdown",
+        "License": "GPL",
+        "Name": "Shutdown Timer"
+    },
+    "X-KdeConnect-OutgoingPacketType": [
+        "kdeconnect.shutdowntimer",
+        "kdeconnect.shutdowntimer.request"
+    ],
+    "X-KdeConnect-SupportedPacketType": [
+        "kdeconnect.shutdowntimer",
+        "kdeconnect.shutdowntimer.request"
+    ]
+}
