@@ -14,17 +14,34 @@
 
 #include <core/daemon.h>
 #include <core/device.h>
+#include <core/kdeconnectpluginconfig.h>
 
 #include "plugin_shutdowntimer_debug.h"
 #include "powermanagement.h"
 
 K_PLUGIN_CLASS_WITH_JSON(ShutdownTimerPlugin, "kdeconnect_shutdowntimer.json")
 
+namespace
+{
+constexpr int SYNC_INTERVAL_MSECS = 60 * 1000;
+constexpr int DEFAULT_WARNING_SECONDS = 5 * 60;
+}
+
 ShutdownTimerPlugin::ShutdownTimerPlugin(QObject *parent, const QVariantList &args)
     : KdeConnectPlugin(parent, args)
 {
     connect(&m_localTimer, &ShutdownTimer::changed, this, &ShutdownTimerPlugin::sendState);
+    connect(&m_localTimer, &ShutdownTimer::changed, this, &ShutdownTimerPlugin::onLocalTimerChanged);
     connect(&m_localTimer, &ShutdownTimer::expired, this, &ShutdownTimerPlugin::handleExpired);
+
+    m_syncTimer.setInterval(SYNC_INTERVAL_MSECS);
+    connect(&m_syncTimer, &QTimer::timeout, this, &ShutdownTimerPlugin::sendState);
+
+    m_warningTimer.setSingleShot(true);
+    connect(&m_warningTimer, &QTimer::timeout, this, &ShutdownTimerPlugin::showWarning);
+
+    // A changed warningSeconds applies to an already pending timer too
+    connect(config(), &KdeConnectPluginConfig::configChanged, this, &ShutdownTimerPlugin::onLocalTimerChanged);
 }
 
 bool ShutdownTimerPlugin::isActive() const
@@ -121,6 +138,39 @@ void ShutdownTimerPlugin::sendState()
     sendPacket(np);
 }
 
+void ShutdownTimerPlugin::onLocalTimerChanged()
+{
+    if (!m_localTimer.isActive()) {
+        m_syncTimer.stop();
+        m_warningTimer.stop();
+        return;
+    }
+
+    m_syncTimer.start();
+
+    const qint64 warningMsecs = config()->getInt(QStringLiteral("warningSeconds"), DEFAULT_WARNING_SECONDS) * 1000LL;
+    const qint64 untilWarning = m_localTimer.deadline() - QDateTime::currentMSecsSinceEpoch() - warningMsecs;
+    if (warningMsecs > 0 && untilWarning > 0) {
+        // Fits in int: the deadline is at most ShutdownTimer::maxSeconds away
+        m_warningTimer.start(static_cast<int>(untilWarning));
+    } else {
+        // Disabled, or the timer is shorter than the warning lead; the
+        // notification sent when it was scheduled already announces it.
+        m_warningTimer.stop();
+    }
+}
+
+void ShutdownTimerPlugin::showWarning()
+{
+    const qint64 remainingMsecs = m_localTimer.deadline() - QDateTime::currentMSecsSinceEpoch();
+    if (!m_localTimer.isActive() || remainingMsecs <= 0) {
+        return;
+    }
+
+    const QString text = pendingActionText(KFormat().formatSpelloutDuration(remainingMsecs));
+    Daemon::instance()->sendSimpleNotification(QStringLiteral("shutdownTimerWarning"), device()->name(), text, QStringLiteral("system-shutdown"));
+}
+
 void ShutdownTimerPlugin::handleExpired(ShutdownTimer::Action action)
 {
     qCDebug(KDECONNECT_PLUGIN_SHUTDOWNTIMER) << "Timer expired, executing" << ShutdownTimer::actionToString(action);
@@ -132,22 +182,22 @@ void ShutdownTimerPlugin::handleExpired(ShutdownTimer::Action action)
 void ShutdownTimerPlugin::notifyScheduled()
 {
     const qint64 remainingMsecs = m_localTimer.deadline() - QDateTime::currentMSecsSinceEpoch();
-    const QString duration = KFormat().formatSpelloutDuration(qMax<qint64>(remainingMsecs, 0));
-
-    QString text;
-    switch (m_localTimer.action()) {
-    case ShutdownTimer::Action::Shutdown:
-        text = i18n("This device will shut down in %1", duration);
-        break;
-    case ShutdownTimer::Action::Reboot:
-        text = i18n("This device will reboot in %1", duration);
-        break;
-    case ShutdownTimer::Action::Suspend:
-        text = i18n("This device will suspend in %1", duration);
-        break;
-    }
+    const QString text = pendingActionText(KFormat().formatSpelloutDuration(qMax<qint64>(remainingMsecs, 0)));
 
     Daemon::instance()->sendSimpleNotification(QStringLiteral("shutdownTimerScheduled"), device()->name(), text, QStringLiteral("system-shutdown"));
+}
+
+QString ShutdownTimerPlugin::pendingActionText(const QString &duration) const
+{
+    switch (m_localTimer.action()) {
+    case ShutdownTimer::Action::Shutdown:
+        return i18n("This device will shut down in %1", duration);
+    case ShutdownTimer::Action::Reboot:
+        return i18n("This device will reboot in %1", duration);
+    case ShutdownTimer::Action::Suspend:
+        return i18n("This device will suspend in %1", duration);
+    }
+    Q_UNREACHABLE();
 }
 
 QString ShutdownTimerPlugin::dbusPath() const

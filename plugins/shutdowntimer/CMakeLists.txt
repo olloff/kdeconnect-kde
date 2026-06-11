@@ -15,3 +15,5 @@ target_link_libraries(kdeconnect_shutdowntimer
     KF6::CoreAddons
     KF6::I18n
 )
+
+install(FILES "kdeconnect_shutdowntimer_config.qml" DESTINATION ${KDE_INSTALL_DATADIR}/kdeconnect)

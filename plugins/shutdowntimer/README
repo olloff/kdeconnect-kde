@@ -19,10 +19,12 @@ kdeconnect.shutdowntimer (status, sent by the device that owns the timer):
     action   (string) "shutdown" | "reboot" | "suspend"; only when isActive
     deadline (long)   when the action fires, in msecs since epoch (UTC);
                       only when isActive. Receivers derive the remaining
-                      time locally, so no periodic updates are sent.
+                      time locally from the deadline.
 
 It is sent when the local timer changes for any reason, when the peer asks
-for it via requestStatus, and once on connect.
+for it via requestStatus, and once on connect. While a timer is pending it
+is additionally re-broadcast once a minute, so a peer that missed a status
+packet (or whose clock drifts) converges within one interval.
 
 kdeconnect.shutdowntimer.request (control, sent by the controlling device):
     requestStatus (bool)   ask the peer to broadcast its current status
@@ -33,3 +35,13 @@ kdeconnect.shutdowntimer.request (control, sent by the controlling device):
 
 Actions that the receiving platform cannot perform are rejected; the
 unchanged status broadcast that follows acts as the negative acknowledgement.
+
+Configuration
+-------------
+
+warningSeconds (int, default 300): how long before the local deadline the
+"Power Action Imminent" notification is shown; 0 disables it. Timers shorter
+than the lead don't get the extra warning, since the notification shown when
+they were scheduled already announces them. Exposed in the plugin's config
+UI in minutes; the companion app has an equivalent per-device setting for
+the notification it shows on its own side.

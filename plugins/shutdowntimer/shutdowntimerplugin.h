@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <QTimer>
+
 #include <core/kdeconnectplugin.h>
 
 #include "shutdowntimer.h"
@@ -59,8 +61,19 @@ private:
     void handleRequest(const NetworkPacket &np);
     void handleExpired(ShutdownTimer::Action action);
     void notifyScheduled();
+    void onLocalTimerChanged();
+    void showWarning();
+    QString pendingActionText(const QString &duration) const;
 
     ShutdownTimer m_localTimer;
+
+    // Re-broadcasts the local timer status while it is active, so a peer
+    // that missed a status packet converges within one interval.
+    QTimer m_syncTimer;
+
+    // Fires the "about to shut down" notification, a configurable time
+    // (config key warningSeconds, 0 to disable) before the local deadline.
+    QTimer m_warningTimer;
 
     // Last known state of the remote device's timer
     bool m_remoteActive = false;

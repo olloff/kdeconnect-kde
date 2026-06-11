@@ -1171,3 +1171,8 @@ Action=Popup
 Name=Power Action Cancelled
 Comment=A scheduled shutdown, reboot or suspend was cancelled
 Action=Popup
+
+[Event/shutdownTimerWarning]
+Name=Power Action Imminent
+Comment=A scheduled shutdown, reboot or suspend is about to happen
+Action=Popup|Sound
