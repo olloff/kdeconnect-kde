@@ -134,6 +134,7 @@ ShutdownTimerDbusInterface::ShutdownTimerDbusInterface(const QString &deviceId, 
                                                    QDBusConnection::sessionBus(),
                                                    parent)
 {
+    connect(this, &OrgKdeKdeconnectDeviceShutdowntimerInterface::timerChanged, this, &ShutdownTimerDbusInterface::timerChangedProxy);
 }
 
 FindMyPhoneDeviceDbusInterface::FindMyPhoneDeviceDbusInterface(const QString &deviceId, QObject *parent)

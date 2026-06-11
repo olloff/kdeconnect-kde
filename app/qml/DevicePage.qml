@@ -179,6 +179,14 @@ Kirigami.ScrollablePage {
                 device: root.currentDevice
             },
             PluginItem {
+                name: i18nd("kdeconnect-app", "Shutdown timer")
+                interfaceFactory: ShutdownTimerDbusInterfaceFactory
+                component: "shutdowntimer.qml"
+                pluginName: "shutdowntimer"
+                section: "control"
+                device: root.currentDevice
+            },
+            PluginItem {
                 readonly property QtObject sms: SmsDbusInterfaceFactory.create(root.currentDevice.id())
                 pluginName: "sms"
                 name: i18n("SMS Messages")

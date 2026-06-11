@@ -36,6 +36,7 @@ ecm_target_qml_sources(kdeconnect-app SOURCES
     qml/ConnectivityInfo.qml
     qml/DevicePage.qml
     qml/runcommand.qml
+    qml/shutdowntimer.qml
     qml/volume.qml
     qml/MprisSlider.qml
     qml/PluginSettings.qml

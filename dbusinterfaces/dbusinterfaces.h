@@ -250,8 +250,15 @@ Q_SIGNALS:
 class KDECONNECTDBUSINTERFACES_EXPORT ShutdownTimerDbusInterface : public OrgKdeKdeconnectDeviceShutdowntimerInterface
 {
     Q_OBJECT
+    // Re-declared with NOTIFY so QML bindings update on the timerChanged D-Bus signal
+    Q_PROPERTY(bool isActive READ isActive NOTIFY timerChangedProxy)
+    Q_PROPERTY(QString action READ action NOTIFY timerChangedProxy)
+    Q_PROPERTY(qint64 deadline READ deadline NOTIFY timerChangedProxy)
 public:
     explicit ShutdownTimerDbusInterface(const QString &deviceId, QObject *parent = nullptr);
+
+Q_SIGNALS:
+    void timerChangedProxy();
 };
 
 #endif
