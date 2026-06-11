@@ -1,0 +1,47 @@
+Shutdown Timer plugin
+=====================
+
+Lets a paired device schedule, inspect and cancel a delayed power action
+(shut down, reboot or suspend) on this device, and lets this device do the
+same on the paired device.
+
+The timer is owned by the KDE Connect daemon of the device that will perform
+the action: scheduling does not call into OS-level facilities (shutdown.exe,
+"shutdown +30", ...) until the timer expires, which keeps the behaviour
+identical on all supported platforms and makes the timer readable and
+cancellable at any time.
+
+Protocol
+--------
+
+kdeconnect.shutdowntimer (status, sent by the device that owns the timer):
+    isActive (bool)   whether a timer is currently pending
+    action   (string) "shutdown" | "reboot" | "suspend"; only when isActive
+    deadline (long)   when the action fires, in msecs since epoch (UTC);
+                      only when isActive. Receivers derive the remaining
+                      time locally from the deadline.
+
+It is sent when the local timer changes for any reason, when the peer asks
+for it via requestStatus, and once on connect. While a timer is pending it
+is additionally re-broadcast once a minute, so a peer that missed a status
+packet (or whose clock drifts) converges within one interval.
+
+kdeconnect.shutdowntimer.request (control, sent by the controlling device):
+    requestStatus (bool)   ask the peer to broadcast its current status
+    cancel        (bool)   abort the pending timer, if any
+    setAction     (string) + setSeconds (long)
+                           schedule an action in the given number of seconds,
+                           replacing any pending timer
+
+Actions that the receiving platform cannot perform are rejected; the
+unchanged status broadcast that follows acts as the negative acknowledgement.
+
+Configuration
+-------------
+
+warningSeconds (int, default 300): how long before the local deadline the
+"Power Action Imminent" notification is shown; 0 disables it. Timers shorter
+than the lead don't get the extra warning, since the notification shown when
+they were scheduled already announces them. Exposed in the plugin's config
+UI in minutes; the companion app has an equivalent per-device setting for
+the notification it shows on its own side.
